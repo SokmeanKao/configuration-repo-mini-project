@@ -1,0 +1,37 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth/realms/mini-project-2-g3
+          jwk-set-uri: http://localhost:8080/auth/realms/mini-project-2-g3/protocol/openid-connect/certs
+  application:
+    name: keycloak-admin-client
+#Register Into Eureka
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+keycloak:
+  realm: mini-project-2-g3
+  resource: mini-project
+  auth-server-url: http://localhost:8080/auth/
+  credentials:
+    client-id: mini-project-client
+    secret: oWOf1ZUF6VaWrIXecLWfVF5WTTXpYLcl
+    provider: secret
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, circuitbreakers
+  health:
+    circuitbreakers:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
