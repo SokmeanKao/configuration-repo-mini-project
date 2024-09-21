@@ -18,7 +18,7 @@ spring:
         - id: keycloak-admin-client-swagger
           uri: lb://keycloak-admin-client
           predicates:
-            - Path=/v3/api-docs/keycloak-admin-client
+            - Path=/keycloak-admin-client/v3/api-docs
           filters:
             - RewritePath=/v3/api-docs/keycloak-admin-client,/v3/api-docs
         - id: task-service-swagger
