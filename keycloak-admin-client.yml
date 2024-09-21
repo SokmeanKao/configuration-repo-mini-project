@@ -24,6 +24,11 @@ keycloak:
     client-id: mini-project-client
     secret: oWOf1ZUF6VaWrIXecLWfVF5WTTXpYLcl
     provider: secret
+springdoc:
+  api-docs:
+    path: /keycloak-admin-client/v3/api-docs
+  swagger-ui:
+    path: /keycloak-admin-client/swagger-ui.html
 management:
   endpoints:
     web:
