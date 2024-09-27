@@ -1,12 +1,22 @@
 spring:
   application:
     name: task-service
-#DataBase
+  main:
+    allow-bean-definition-overriding: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/master  # Verify JWT tokens from Keycloak realm
+  # DataBase Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5433/mini_project_db
-    username: user
-    password: 123
-#Register Into Eureka
+    url: jdbc:postgresql://localhost:5433/task_db
+    username: postgres
+    password: asd
+  jpa:
+    hibernate:
+      ddl-auto: update
+# Eureka Configuration
 eureka:
   client:
     fetch-registry: true
@@ -15,6 +25,51 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
+# Management and Health
+resilience4j:
+  circuitbreaker:
+    instances:
+      createTaskCircuitBreaker:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        automatic-transition-from-open-to-half-open-enabled: true
+        permittedNumberOfCallsInHalfOpenState: 5
+        register-health-indicator: true
+        minimum-number-of-calls: 5
+      getTaskByIdCircuitBreaker:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        automatic-transition-from-open-to-half-open-enabled: true
+        permittedNumberOfCallsInHalfOpenState: 5
+        register-health-indicator: true
+        minimum-number-of-calls: 5
+      getAllTasksCircuitBreaker:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        automatic-transition-from-open-to-half-open-enabled: true
+        permittedNumberOfCallsInHalfOpenState: 5
+        register-health-indicator: true
+        minimum-number-of-calls: 5
+      updateTaskByIdCircuitBreaker:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        automatic-transition-from-open-to-half-open-enabled: true
+        permittedNumberOfCallsInHalfOpenState: 5
+        register-health-indicator: true
+        minimum-number-of-calls: 5
+      deleteTaskByIdCircuitBreaker:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        automatic-transition-from-open-to-half-open-enabled: true
+        permittedNumberOfCallsInHalfOpenState: 5
+        register-health-indicator: true
+        minimum-number-of-calls: 5
+#Resilience4J
 management:
   endpoints:
     web:

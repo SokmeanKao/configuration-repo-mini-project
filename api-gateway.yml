@@ -1,24 +1,59 @@
 spring:
   application:
     name: api-gateway
+  main:
+    web-application-type: reactive
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: api-gateway  # Your Gateway Client ID
+            client-secret: fRz2vJjIeM69NB06LbcujMWwZxzWYJlG  # Your Client Secret
+            authorization-grant-type: client_credentials
+            scope: openid
+            provider: keycloak
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/realms/master
+            token-uri: http://localhost:8080/realms/master/protocol/openid-connect/token
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/master
+          jwk-set-uri: http://localhost:8080/realms/master/protocol/openid-connect/certs
+
   cloud:
     gateway:
       routes:
-        #Normal Config
-        - id: keycloak-admin-client
-          uri: lb://keycloak-admin-client
-          predicates:
-            - Path=/api/v1/group/** , /api/v1/user/**
         - id: task-service
           uri: lb://task-service
           predicates:
             - Path=/api/v1/task/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - TokenRelay
+            - name: CircuitBreaker
+              args:
+                name: taskCircuitBreaker
+                fallbackUri: forward:/fallback/task
 
-        #Configure Swagger With Gateway
+        - id: keycloak-admin-client
+          uri: lb://keycloak-admin-client
+          predicates:
+            - Path=/api/v1/user/**, /api/v1/group/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - TokenRelay
+            - name: CircuitBreaker
+              args:
+                name: keyCloakAdminClientCircuitBreaker
+                fallbackUri: forward:/fallback/keyCloakAdminClient
+
+        # Swagger configuration
         - id: keycloak-admin-client-swagger
           uri: lb://keycloak-admin-client
           predicates:
-            - Path=/keycloak-admin-client/v3/api-docs
+            - Path=/v3/api-docs/keycloak-admin-client
           filters:
             - RewritePath=/v3/api-docs/keycloak-admin-client,/v3/api-docs
         - id: task-service-swagger
@@ -27,29 +62,41 @@ spring:
             - Path=/v3/api-docs/task-service
           filters:
             - RewritePath=/v3/api-docs/task-service,/v3/api-docs
+
 server:
   port: 9090
-#Swagger UI Config
-springdoc:
-  swagger-ui:
-    path: /swagger-ui/index.html
-#Register into Eureka
+#CircuitBreaker with resilience4j
+resilience4j:
+  circuitbreaker:
+    instances:
+      keyCloakAdminClientCircuitBreaker:
+        slidingWindowSize: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        automatic-transition-from-open-to-half-open-enabled: true
+        permittedNumberOfCallsInHalfOpenState: 5
+        register-health-indicator: true
+      taskCircuitBreaker:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        automatic-transition-from-open-to-half-open-enabled: true
+        permittedNumberOfCallsInHalfOpenState: 5
+        register-health-indicator: true
 eureka:
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, metrics, circuitbreakers
-  health:
-    circuitbreakers:
-      enabled: true
-  tracing:
-    sampling:
-      probability: 1.0
+
+springdoc:
+  swagger-ui:
+    oauth2-redirect-url: http://localhost:9090/swagger-ui/oauth2-redirect.html
+    path: /swagger-ui/index.html
+    oauth:
+      client-id: api-gateway
+      client-secret: fRz2vJjIeM69NB06LbcujMWwZxzWYJlG
+      scopes: openid
+  api-docs:
+    path: /v3/api-docs

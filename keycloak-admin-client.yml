@@ -1,13 +1,20 @@
 spring:
+  application:
+    name: keycloak-admin-client
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/auth/realms/mini-project-2-g3
-          jwk-set-uri: http://localhost:8080/auth/realms/mini-project-2-g3/protocol/openid-connect/certs
-  application:
-    name: keycloak-admin-client
-#Register Into Eureka
+          issuer-uri: http://localhost:8080/realms/master  # Verify JWT tokens from Keycloak realm
+keycloak:
+  realm: master
+  resource: api-gateway
+  auth-server-url: http://localhost:8080 #docker container
+  credentials:
+    client-id: api-gateway
+    secret: fRz2vJjIeM69NB06LbcujMWwZxzWYJlG
+    provider: secret
+# Eureka Configuration
 eureka:
   client:
     fetch-registry: true
@@ -16,19 +23,7 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
-keycloak:
-  realm: mini-project-2-g3
-  resource: mini-project
-  auth-server-url: http://localhost:8080/auth/
-  credentials:
-    client-id: mini-project-client
-    secret: oWOf1ZUF6VaWrIXecLWfVF5WTTXpYLcl
-    provider: secret
-springdoc:
-  api-docs:
-    path: /keycloak-admin-client/v3/api-docs
-  swagger-ui:
-    path: /keycloak-admin-client/swagger-ui.html
+# Management and Health
 management:
   endpoints:
     web:
@@ -40,3 +35,7 @@ management:
   tracing:
     sampling:
       probability: 1.0
+logging:
+  level:
+    org.keycloak: DEBUG
+    org.springframework.web: DEBUG
