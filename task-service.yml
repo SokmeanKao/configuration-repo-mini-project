@@ -10,7 +10,7 @@ spring:
           issuer-uri: http://localhost:8080/realms/master  # Verify JWT tokens from Keycloak realm
   # DataBase Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5433/task_db
+    url: jdbc:postgresql://localhost:5432/task_db
     username: postgres
     password: asd
   jpa:
